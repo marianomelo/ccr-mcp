@@ -1,0 +1,26 @@
+{
+  "transformers": [
+    {
+      "path": "/home/USER/.claude-code-router/transformers/reasoning-injector.js"
+    }
+  ],
+  "Providers": [
+    {
+      "name": "deepseek",
+      "api_base_url": "https://api.deepseek.com/chat/completions",
+      "api_key": "REPLACE_WITH_YOUR_DEEPSEEK_KEY",
+      "models": ["deepseek-chat", "deepseek-v4-flash", "deepseek-v4-pro"],
+      "transformer": {
+        "use": ["deepseek", "reasoning-injector"]
+      }
+    }
+  ],
+  "Router": {
+    "default": "deepseek,deepseek-v4-pro",
+    "background": "deepseek,deepseek-v4-pro",
+    "think": "deepseek,deepseek-v4-pro",
+    "longContext": "deepseek,deepseek-v4-pro",
+    "longContextThreshold": 60000,
+    "webSearch": "deepseek,deepseek-v4-pro"
+  }
+}

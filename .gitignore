@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+.claude/
+bateria.py
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# never commit secrets or local config
+config.json
+.env
+.env.*
+!.env.example
