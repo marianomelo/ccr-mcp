@@ -155,6 +155,23 @@ def spawn_agent(task: str, cwd: str = "", timeout: int = 0) -> str:
     window. Use this for multi-step coding work — the heavy I/O stays in
     the subagent and never enters this conversation.
 
+    IMPORTANT — non-blocking usage pattern:
+        spawn_agent returns immediately with an agent_id. The subagent
+        keeps running in the background. DO NOT then immediately call
+        agent_result with wait=True — that defeats the purpose and blocks
+        the conversation. Instead:
+
+            1. spawn_agent(task)           -> returns agent_id instantly
+            2. (do other work or respond to the user)
+            3. agent_status(agent_id)      -> non-blocking, see if done
+            4. agent_logs(agent_id)        -> peek at progress if needed
+            5. agent_result(agent_id)      -> only when status says completed
+                                              (default wait=False, returns
+                                               "still running" if not done)
+
+        Use wait=True on agent_result ONLY if you have explicit user
+        instruction to block until completion.
+
     Args:
         task: Instruction for the subagent.
         cwd: Working directory. Empty = current dir of this MCP process.
@@ -213,13 +230,21 @@ def agent_status(agent_id: str) -> str:
 
 
 @mcp.tool()
-def agent_result(agent_id: str, wait: bool = True, max_wait: int = 0) -> str:
-    """Get the subagent's final result.
+def agent_result(agent_id: str, wait: bool = False, max_wait: int = 0) -> str:
+    """Get the subagent's final result. NON-BLOCKING by default.
 
-    If wait=True (default), blocks up to max_wait seconds (or its timeout)
-    until the subagent finishes. Returns the final assistant text plus a
-    one-line metadata footer (status, elapsed, tokens, cost).
-    The full transcript is NOT returned — call agent_logs for that.
+    Default behavior (wait=False): returns immediately. If the subagent is
+    still running, returns "still running after Ns" — call again later, or
+    poll agent_status first. This is the recommended pattern: do not block
+    the conversation waiting for a subagent.
+
+    Set wait=True ONLY when you have explicit instruction to block until
+    completion (e.g., the user asked you to "wait for it"). With wait=True,
+    blocks up to max_wait seconds (or the subagent's timeout) until done.
+
+    On completion, returns the final assistant text plus a one-line
+    metadata footer (status, elapsed, tokens, cost). The full transcript
+    is NOT returned — call agent_logs for that.
     """
     a = AGENTS.get(agent_id)
     if a is None:
